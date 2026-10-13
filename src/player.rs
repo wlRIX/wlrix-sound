@@ -123,18 +123,15 @@ impl Player {
         self.voices.len()
     }
 
-    /// Start playing `pcm`. Returns the voice's id, which [`Player::reap`] reports when it ends,
-    /// or why it could not start.
-    pub fn play(&mut self, name: &str, pcm: Rc<Pcm>) -> Result<u64, String> {
+    /// Start playing `pcm`, through the sink named `output` or the default one. Returns the
+    /// voice's id, which [`Player::reap`] reports when it ends, or why it could not start.
+    pub fn play(&mut self, name: &str, pcm: Rc<Pcm>, output: Option<&str>) -> Result<u64, String> {
         if self.voices.len() >= MAX_VOICES {
             return Err(format!("{MAX_VOICES} sounds are already playing"));
         }
         let core = self.connection()?.core.clone();
 
-        let stream = StreamRc::new(
-            core,
-            name,
-            pipewire::properties::properties! {
+        let mut properties = pipewire::properties::properties! {
                 *pipewire::keys::MEDIA_TYPE => "Audio",
                 *pipewire::keys::MEDIA_CATEGORY => "Playback",
                 *pipewire::keys::MEDIA_ROLE => "Event",
@@ -145,9 +142,16 @@ impl Player {
                 // What libcanberra sets, so session policy written for canberra's streams
                 // recognizes these.
                 "event.id" => name,
-            },
-        )
-        .map_err(|err| format!("could not create a stream: {err}"))?;
+        };
+        // The panel's "Play Desktop Sounds Through". A sink that has gone away -- a headset
+        // unplugged -- leaves the session manager to route the stream to the default instead,
+        // which is the behavior wanted: the sound is still heard.
+        if let Some(output) = output {
+            // `target.object`, spelled out: the crate only names it behind a version feature.
+            properties.insert("target.object", output);
+        }
+        let stream = StreamRc::new(core, name, properties)
+            .map_err(|err| format!("could not create a stream: {err}"))?;
 
         let channels = pcm.channels;
         let rate = pcm.rate;

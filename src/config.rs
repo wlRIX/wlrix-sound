@@ -3,9 +3,17 @@
 //!
 //! ```toml
 //! # ~/.config/wlrix/sounds.toml
-//! enabled = true                             # play system sounds at all
-//! theme = "wlrix"                            # the XDG sound theme, by directory name
-//! disabled = ["bell"]                       # sounds that never play, by name
+//! enabled = true          # play system sounds at all
+//! theme = "wlrix"         # the XDG sound theme, by directory name
+//! output = ""             # the PipeWire sink to play through, by node name; empty for the default
+//! disabled = ["bell"]     # sounds that never play, by name
+//!
+//! [play]                  # the panel's checkboxes; see crate::catalog::Category
+//! startup = false
+//! desktop = true
+//! windows = false
+//! alerts = true
+//! bell = true
 //! ```
 //!
 //! Read from the user's config directory first, then `/etc/wlrix`; the first file found wins
@@ -18,6 +26,8 @@
 //! step by hand.
 
 use serde::Deserialize;
+
+use crate::catalog::Category;
 
 /// The theme when the file does not name one: the IRIX soundscheme, from `wlrix-sounds`.
 pub const DEFAULT_THEME: &str = "wlrix";
@@ -36,6 +46,29 @@ pub struct Config {
     /// Missing and empty are the same, as with every list in wlRIX's config files.
     #[serde(default)]
     disabled: Vec<String>,
+    /// The sink to play through, by PipeWire node name. Absent or empty follows the default
+    /// output, wherever that moves.
+    #[serde(default)]
+    output: Option<String>,
+    /// Which kinds of sound play.
+    #[serde(default)]
+    play: Play,
+}
+
+/// The System & Desktop Sounds panel's checkboxes, one per [`Category`].
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Play {
+    #[serde(default)]
+    startup: Option<bool>,
+    #[serde(default)]
+    desktop: Option<bool>,
+    #[serde(default)]
+    windows: Option<bool>,
+    #[serde(default)]
+    alerts: Option<bool>,
+    #[serde(default)]
+    bell: Option<bool>,
 }
 
 impl Config {
@@ -50,9 +83,32 @@ impl Config {
             .unwrap_or(DEFAULT_THEME)
     }
 
-    /// Whether `name` has been muted.
+    /// Whether `name` has been muted, by name or by its category being off.
     pub fn is_disabled(&self, name: &str) -> bool {
-        self.disabled.iter().any(|muted| muted == name)
+        !self.plays(crate::catalog::category_of(name))
+            || self.disabled.iter().any(|muted| muted == name)
+    }
+
+    /// Whether a category's checkbox is on.
+    ///
+    /// The defaults are a default IRIX 6.5 desktop's: the soundscheme, alerts and the bell, and
+    /// neither the machine's power-on and power-off tunes nor window sounds, which it never
+    /// played at a login or for a window. Kept in step by hand with `wlrix-settings-daemon`'s
+    /// schema.
+    pub fn plays(&self, category: Category) -> bool {
+        let play = &self.play;
+        match category {
+            Category::Startup => play.startup.unwrap_or(false),
+            Category::Desktop => play.desktop.unwrap_or(true),
+            Category::Windows => play.windows.unwrap_or(false),
+            Category::Alerts => play.alerts.unwrap_or(true),
+            Category::Bell => play.bell.unwrap_or(true),
+        }
+    }
+
+    /// The sink to play through, or `None` for the default output.
+    pub fn output(&self) -> Option<&str> {
+        self.output.as_deref().filter(|output| !output.is_empty())
     }
 
     /// Load the first config file that exists. No file at all is not an error -- the defaults are
@@ -106,6 +162,30 @@ mod tests {
         assert!(config.enabled());
         assert_eq!(config.theme(), DEFAULT_THEME);
         assert!(!config.is_disabled("wlrix-launch"));
+        assert!(!config.is_disabled("bell"));
+        assert!(!config.is_disabled("dialog-error"));
+        // A default IRIX desktop played neither of these.
+        assert!(config.is_disabled("desktop-login"));
+        assert!(config.is_disabled("window-minimized"));
+        assert_eq!(config.output(), None);
+    }
+
+    #[test]
+    fn a_category_switch_mutes_its_sounds() {
+        let config = config("[play]\ndesktop = false\nwindows = true\n");
+        assert!(config.is_disabled("wlrix-launch"));
+        assert!(config.is_disabled("file-trash"));
+        assert!(!config.is_disabled("desktop-switch-left"));
+        assert!(!config.is_disabled("bell"));
+    }
+
+    #[test]
+    fn an_output_is_named_or_the_default() {
+        assert_eq!(config("output = \"\"\n").output(), None);
+        assert_eq!(
+            config("output = \"alsa_output.usb\"\n").output(),
+            Some("alsa_output.usb")
+        );
     }
 
     #[test]
@@ -129,5 +209,6 @@ mod tests {
     #[test]
     fn a_typo_is_refused_rather_than_ignored() {
         assert!(toml::from_str::<Config>("enable = false\n").is_err());
+        assert!(toml::from_str::<Config>("[play]\nstartpu = true\n").is_err());
     }
 }

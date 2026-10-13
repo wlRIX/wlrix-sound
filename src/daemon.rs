@@ -302,7 +302,7 @@ impl Daemon {
             },
         };
 
-        match self.player.play(name, pcm) {
+        match self.player.play(name, pcm, self.config.output()) {
             Ok(id) => {
                 self.last = Some((name.to_owned(), now));
                 self.arm_deadline();

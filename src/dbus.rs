@@ -9,7 +9,9 @@
 //! Play(s name)                  play a sound, if sounds.toml allows it
 //! Preview(s theme, s name)      play a sound from a theme ("" for the configured one), whatever
 //!                               sounds.toml says -- for a settings panel's "test" button
-//! Events() -> a(sss)            every sound the desktop plays: name, label, category
+//! Events() -> a(sss)            every sound the desktop plays: name, label, category -- one
+//!                               of startup, desktop, windows, alerts, bell, sounds.toml's
+//!                               [play] keys
 //! ListThemes() -> a(ss)         every installed sound theme: id, display name
 //! ```
 //!
@@ -86,7 +88,7 @@ impl Service {
                 (
                     (*name).to_owned(),
                     (*label).to_owned(),
-                    (*category).to_owned(),
+                    category.id().to_owned(),
                 )
             })
             .collect()

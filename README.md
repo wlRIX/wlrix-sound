@@ -62,7 +62,7 @@ plays, and it is what `Events` returns:
 |-----------------------------------------------|------------------------------|--------------------------------------------------------|
 | `desktop-login`, `desktop-logout`             | wlrix-session                | the session starts; the session is logged out          |
 | `desktop-screen-lock`                         | wlrix-compositor             | the screen locker has locked                           |
-| `window-new`, `window-close`                  | wlrix-compositor             | a window maps; a window goes away (silent in `wlrix`)  |
+| `window-new`, `window-close`                  | wlrix-compositor             | a window maps; a window goes away (no `wlrix` sound)   |
 | `window-minimized`, `window-unminimized`      | wlrix-compositor             | a window is minimized; restored                        |
 | `desktop-switch-left`, `desktop-switch-right` | wlrix-compositor             | changing desks, by direction in the desk order         |
 | `bell`                                        | compositor, desktop          | an action is refused                                   |
@@ -78,10 +78,22 @@ plays, and it is what `Events` returns:
 
 ```toml
 # ~/.config/wlrix/sounds.toml
-enabled = true                             # play system sounds at all
-theme = "wlrix"                            # by directory name under share/sounds
-disabled = []                              # sounds that never play, by name
+enabled = true          # play system sounds at all
+theme = "wlrix"         # by directory name under share/sounds
+output = ""             # a PipeWire sink by node name; empty follows the default output
+disabled = []           # sounds that never play, by name
+
+[play]                  # whole kinds of sound, as IRIX's System & Desktop Sounds panel had them
+startup = false         # login, logout, lock
+desktop = true          # icons, folders, launching, drag-and-drop, the dumpster, disks
+windows = false         # minimize, restore, desk switches, open/close
+alerts = true           # dialogs
+bell = true             # the bell
 ```
+
+Every sound belongs to one `[play]` category (`src/catalog.rs`), and an unlisted one is placed by its name. The
+defaults are a default IRIX 6.5 desktop's. It played neither the Indy's power-on and power-off tunes, which the `wlrix`
+theme uses for login and logout, nor any window sounds. `Wlrix.Settings.Sound` is the panel for all of this.
 
 Every key is optional, and `data/sounds.toml` documents each one. `SIGHUP` re-reads the file, and the
 settings daemon sends it on every change, finding the process through `$XDG_RUNTIME_DIR/wlrix-sound.pid`.

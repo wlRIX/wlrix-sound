@@ -14,6 +14,26 @@ enabled = true
 # IRIX Indigo Magic soundscheme; `freedesktop` is the stock theme most distributions ship.
 theme = "wlrix"
 
+# The sink to play through, by PipeWire node name (`wpctl status`, or `node.name` in `pw-dump`).
+# Empty follows the default output. A sink that is not there falls back to the default.
+output = ""
+
 # Sounds that never play, by sound name -- `wlrix-launch`, `desktop-switch-left`, and so on.
-# `wlrix-sound` on the bus lists every name the desktop plays (`Events`).
+# `wlrix-sound` on the bus lists every name the desktop plays (`Events`). For one sound at a
+# time; the [play] switches below turn off whole kinds.
 disabled = []
+
+# The System & Desktop Sounds panel's checkboxes. Each sound belongs to one of these, and plays
+# only while it is on. The defaults are a default IRIX 6.5 desktop's.
+[play]
+# Logging in, logging out and locking. The sounds are an Indy's power-on and power-off tunes,
+# which IRIX played at the machine's startup and shutdown, never at a login.
+startup = false
+# Icons, folders, launching, drag-and-drop, the dumpster, disks: the IRIX soundscheme.
+desktop = true
+# Windows opening, closing, minimizing and restoring, and changing desks. IRIX played none.
+windows = false
+# Dialogs and other things that want attention.
+alerts = true
+# The bell, for a refused action or a terminal's ^G.
+bell = true

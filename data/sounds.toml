@@ -1,0 +1,19 @@
+# wlrix-sound settings. Copy to ~/.config/wlrix/sounds.toml and edit, or use the settings panel.
+#
+# Every key is optional; the values below are the defaults. An unknown key makes the whole file
+# be ignored (and says so in the session log), so check a hand edit with
+#
+#     wlrix-sound --check-config ~/.config/wlrix/sounds.toml
+#
+# `kill -HUP $(cat $XDG_RUNTIME_DIR/wlrix-sound.pid)` applies a change without a restart.
+
+# Play system sounds at all. Off silences everything, including the login and logout sounds.
+enabled = true
+
+# The sound theme, by directory name under share/sounds on the XDG data path. `wlrix` is the
+# IRIX Indigo Magic soundscheme; `freedesktop` is the stock theme most distributions ship.
+theme = "wlrix"
+
+# Sounds that never play, by sound name -- `wlrix-launch`, `desktop-switch-left`, and so on.
+# `wlrix-sound` on the bus lists every name the desktop plays (`Events`).
+disabled = []

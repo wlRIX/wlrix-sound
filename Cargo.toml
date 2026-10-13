@@ -1,0 +1,32 @@
+[package]
+name = "wlrix-sound"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+description = "wlRIX system sounds — plays the desktop's event sounds from an XDG sound theme."
+repository = "https://github.com/wlRIX/wlrix-sound"
+publish = false
+
+[dependencies]
+# The event loop. The request socket, the bus, PipeWire's own loop and the signal pings are all
+# sources on one loop, so nothing polls and nothing races -- the same arrangement as
+# `wlrix-clipboard` and the portal.
+calloop = "0.13"
+# D-Bus: `com.wlrix.Sound`, which the settings panel and other programs use. Blocking API, no
+# tokio, as in the clipboard, the tray, the idle manager and the settings daemon.
+zbus = "5"
+# Playback. One short stream per sound, tagged `media.role=Event` so mixers can tell system
+# sounds from music. The same bindings `xdg-desktop-portal-wlrix` uses for screen casting.
+pipewire = "0.10"
+# Decoding. Sound themes are Ogg Vorbis (`.oga`/`.ogg`) or WAV, and nothing else: the spec names
+# exactly those three extensions. Both are small pure-Rust decoders.
+lewton = "0.10"
+hound = "3"
+# The config file. TOML is wlRIX's file format throughout.
+serde = { version = "1", features = ["derive"] }
+toml = "1"
+# Duplicating PipeWire's loop fd for calloop.
+rustix = { version = "1", features = ["fs"] }
+# `O_NOFOLLOW` on the pidfile and `signal` for the handlers.
+libc = "0.2"
+

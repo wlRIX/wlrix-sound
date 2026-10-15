@@ -101,6 +101,12 @@ pub const EVENTS: &[Event] = &[
     ),
     ("drag-fail", "Refuse a drop", Category::Desktop),
     ("file-trash", "Move to the dumpster", Category::Desktop),
+    (
+        "wlrix-drag-to-trash",
+        "Drop on the dumpster",
+        Category::Desktop,
+    ),
+    ("trash-empty", "Empty the dumpster", Category::Desktop),
     ("item-deleted", "Remove permanently", Category::Desktop),
     (
         "complete-copy",

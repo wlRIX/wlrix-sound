@@ -110,7 +110,7 @@ pub const EVENTS: &[Event] = &[
     ("wlrix-volume-mount", "Mount a volume", Category::Desktop),
     ("device-added", "Device plugged in", Category::Desktop),
     ("device-removed", "Device removed", Category::Desktop),
-    // Dialogs. Nothing in wlRIX plays these yet; other programs may, and the dialogs will.
+    // Dialogs: Wlrix.Avalonia.Dialogs' MessageDialog, as it opens, and any other program.
     ("dialog-error", "Error", Category::Alerts),
     ("dialog-error-serious", "Fatal error", Category::Alerts),
     ("dialog-warning", "Warning", Category::Alerts),

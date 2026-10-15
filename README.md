@@ -72,6 +72,7 @@ plays, and it is what `Events` returns:
 | `wlrix-drag-move`, `wlrix-drag-copy`, `drag-fail` | Files                    | a drop moves, copies or links, or is refused           |
 | `file-trash`, `item-deleted`                  | desktop, Files               | moved to the trash; deleted outright                   |
 | `complete-copy`                               | Files                        | a copy or move that took a while has finished          |
+| `dialog-error`, `-error-serious`, `-question`, `-warning`, `-information` | `MessageDialog` | a message dialog opens                   |
 | `wlrix-volume-mount`, `device-added`, `device-removed` | Files               | a volume is mounted; a drive appears or goes           |
 
 ## Settings
